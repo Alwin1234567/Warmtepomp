@@ -1,9 +1,16 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from Browser import Browser
+from handler import Browser
 import socketserver
 from typing import Tuple
 
-class HTTPRequestHandler(BaseHTTPRequestHandler):
+class HttpServer(BaseHTTPRequestHandler):
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
     
     def __init__(self, request: bytes, client_address: Tuple[str, int], server: socketserver.BaseServer):
         self.browser = Browser()
@@ -31,7 +38,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
         
 if __name__ == '__main__':
-    server = HTTPServer(('', 8888), HTTPRequestHandler)
+    server = HTTPServer(('', 8888), HttpServer)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

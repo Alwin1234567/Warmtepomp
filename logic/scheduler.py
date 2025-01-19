@@ -1,4 +1,4 @@
-from Browser import Browser
+from handler import Browser
 import schedule
 from time import sleep
 
