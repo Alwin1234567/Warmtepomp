@@ -3,7 +3,7 @@ from handler import Browser
 import socketserver
 from typing import Tuple
 
-class HttpServer(BaseHTTPRequestHandler):
+class Server(BaseHTTPRequestHandler):
 
     _instance = None
 
@@ -38,7 +38,7 @@ class HttpServer(BaseHTTPRequestHandler):
 
         
 if __name__ == '__main__':
-    server = HTTPServer(('', 8888), HttpServer)
+    server = HTTPServer(('', 8888), Server)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
