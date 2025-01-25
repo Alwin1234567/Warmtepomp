@@ -4,7 +4,7 @@ import socketserver
 from typing import Tuple
 from logger import logger
 from config import WarmtepompSettings as WS
-import signal
+import subprocess
 import os
 
 class Server(BaseHTTPRequestHandler):
@@ -21,8 +21,14 @@ class Server(BaseHTTPRequestHandler):
     def __init__(self, request: bytes, client_address: Tuple[str, int], server: socketserver.BaseServer):
         """Initializes the server"""
         self.browser = Browser()
+        current_dir = os.path.dirname(__file__)
+        self.htmlIndexFile = os.path.join(current_dir, 'index.html')
         super().__init__(request, client_address, server)
-        
+        self.server: HTTPServer|None = None
+    
+    def addServer(self, server: HTTPServer):
+        """Adds the server to the class"""
+        self.server = server
     
     def do_POST(self):
         """Handles the POST requests"""
@@ -45,10 +51,21 @@ class Server(BaseHTTPRequestHandler):
             logger.info("Received restart command")
             self.send_response(200)
             self.end_headers()
-            self.wfile.write(b"Restarting server")
-            logger.info("Restarting server...")
-            os.kill(os.getpid(), signal.SIGUSR1)
-            return
+            if self.server is not None:
+                self.wfile.write(b"Restarting server")
+                logger.info("Restarting server...")
+                self.server.server_close()
+                subprocess.run(["/bin/bash", os.path.join(self.current_dir, 'setupAndRun.sh')])
+                return
+            self.wfile.write(b"Server not found restarting ugly way")
+            logger.warning("Server not found restarting ugly way")
+            subprocess.run(["/bin/bash", os.path.join(self.current_dir, 'setupAndRun.sh')])
+            os._exit(0)
+        elif data == "ping":
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"Pong")
+            logger.info("Received ping")
             
         else:
             self.send_response(403)
@@ -62,8 +79,15 @@ class Server(BaseHTTPRequestHandler):
 
     def do_GET(self):
         """Handles the GET requests"""
-        self.send_response(403)
-        self.end_headers()
+        try:
+            with open(self.htmlIndexFile[1:], 'rb') as file:
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write(file.read())
+        except FileNotFoundError:
+            self.send_response(404)
+            self.end_headers()
 
         
 if __name__ == '__main__':
