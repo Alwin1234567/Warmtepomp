@@ -10,6 +10,7 @@ logger.setLevel(logging.DEBUG)
 log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
 log_dir_error = os.path.join(log_dir, 'errors')
 os.makedirs(log_dir, exist_ok=True)
+os.makedirs(log_dir_error, exist_ok=True)
 
 # Create handlers
 debug_handler = TimedRotatingFileHandler(os.path.join(log_dir, 'debug.log'), when='midnight', interval=1)

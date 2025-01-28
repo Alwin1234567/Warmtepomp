@@ -1,5 +1,5 @@
-from enum import Enum, auto
+from enum import Enum
 
 class WarmtepompSettings(Enum):
-    "auto" = "2"
-    "off" = "0"
+    AUTO = "2"
+    OFF = "0"
