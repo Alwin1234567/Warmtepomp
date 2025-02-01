@@ -17,15 +17,17 @@ class Browser():
         self.browser = None
         self.loading = None
         logger.debug("Browser instance created")
-        
+
         # Check for geckodriver.exe and geckodriver
         geckodriver_path_exe = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
         geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver')
         
         if os.path.exists(geckodriver_path_exe):
             self.geckodriver_path = geckodriver_path_exe
+            logger.debug(f"Geckodriver found at {geckodriver_path_exe}")
         elif os.path.exists(geckodriver_path):
             self.geckodriver_path = geckodriver_path
+            logger.debug(f"Geckodriver found at {geckodriver_path}")
         else:
             logger.error(f"Geckodriver not found at {geckodriver_path_exe} or {geckodriver_path}")
             raise FileNotFoundError(f"Geckodriver not found at {geckodriver_path_exe} or {geckodriver_path}")
