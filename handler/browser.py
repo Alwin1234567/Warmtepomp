@@ -17,6 +17,10 @@ class Browser():
         self.browser = None
         self.loading = None
         logger.debug("Browser instance created")
+        self.geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
+        if not os.path.exists(self.geckodriver_path):
+            logger.error(f"Geckodriver not found at {self.geckodriver_path}")
+            raise FileNotFoundError(f"Geckodriver not found at {self.geckodriver_path}")
 
     def browser_init(self):
         """
@@ -25,9 +29,7 @@ class Browser():
         options = Options()
         # options.headless = True # needs testing
         self.browser = webdriver.Firefox(options=options)
-        
-        geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
-        service = Service(executable_path=geckodriver_path)
+        service = Service(executable_path=self.geckodriver_path)
         self.browser = webdriver.Firefox(service=service, options=options)
         self.browser.get("http://admin:admin@192.168.178.145/menupagex.cgi?nodex2=02005800#02045800")
         self.loading = self.browser.find_element(By.ID, "loading")

@@ -23,14 +23,14 @@ class Server(BaseHTTPRequestHandler):
     
     def __init__(self, request: bytes, client_address: Tuple[str, int], server: socketserver.BaseServer):
         """Initializes the server"""
-        self.browser = Browser()
+        try:
+            self.browser = Browser()
+        except Exception as e:
+            logger.error(f"Error while initializing browser: {e}")
         current_dir = os.path.dirname(__file__)
         self.htmlIndexFile = os.path.join(current_dir, 'index.html')
         super().__init__(request, client_address, server)
-    
-    def addServer(self, server: HTTPServer):
-        """Adds the server to the class"""
-        self.server = server
+
     
     def do_POST(self):
         """Handles the POST requests"""
