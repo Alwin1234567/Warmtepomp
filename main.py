@@ -19,8 +19,6 @@ if __name__ == '__main__':
     try:
         logger.info("Server started")
         server.serve_forever()
-    except KeyboardInterrupt:
-        pass
     finally:
         server.server_close()
         logger.info("Server stopped")

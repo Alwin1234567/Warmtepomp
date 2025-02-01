@@ -6,6 +6,7 @@ from logger import logger
 from config import WarmtepompSettings as WS
 # import subprocess
 import os
+from time import sleep
 
 class ServerRestartException(Exception):
     pass
@@ -56,6 +57,9 @@ class Server(BaseHTTPRequestHandler):
             self.wfile.write(b"Restarting server")
             logger.info("Restarting server...")
             # subprocess.run(["/bin/bash", os.path.join(self.current_dir, 'setupAndRun.sh')])
+            if self.browser and self.browser.browser:
+                sleep(1)
+                self.browser.quit_browser()
             raise ServerRestartException("Restarting server")
         elif data == "ping":
             self.send_response(200)
