@@ -4,7 +4,7 @@ import socketserver
 from typing import Tuple
 from logger import logger
 from config import WarmtepompSettings as WS
-# import subprocess
+import traceback
 import os
 from time import sleep
 
@@ -42,7 +42,7 @@ class Server(BaseHTTPRequestHandler):
             try:
                 self.browser.get_set_warmtepompen(WS.AUTO)
             except Exception as e:
-                logger.error(f"Error while trying to set warmtepompen to auto: {e}")
+                logger.error(f"Error while trying to set warmtepompen to auto: {e}\n{traceback.format_exc()}")
                 try:
                     self.browser.quit_browser()
                 except Exception as e:

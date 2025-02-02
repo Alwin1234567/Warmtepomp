@@ -37,9 +37,9 @@ class Browser():
         Initializes the browser and navigates to the URL
         """
         options = FirefoxOptions()
-        # options.headless = True # needs testing
+        options.headless = True # needs testing
         service = Service(executable_path=self.geckodriver_path)
-        self.browser = webdriver.Firefox(service=service)
+        self.browser = webdriver.Firefox(service=service, options=options)
         self.browser.get("http://admin:admin@192.168.178.145/menupagex.cgi?nodex2=02005800#02045800")
         self.loading = self.browser.find_element(By.ID, "loading")
         logger.info("Browser initialized and navigated to the URL")
