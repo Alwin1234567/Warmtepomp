@@ -3,8 +3,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.service import Service
+from selenium.webdriver import FirefoxOptions
 from config import WarmtepompSettings
 from logger import logger
 import os
@@ -36,13 +36,12 @@ class Browser():
         """
         Initializes the browser and navigates to the URL
         """
-        options = Options()
+        options = FirefoxOptions()
         # options.headless = True # needs testing
         self.browser = webdriver.Firefox(options=options)
         service = Service(executable_path=self.geckodriver_path)
         self.browser = webdriver.Firefox(service=service, options=options)
         self.browser.get("http://admin:admin@192.168.178.145/menupagex.cgi?nodex2=02005800#02045800")
-        self.loading = self.browser.find_element(By.ID, "loading")
         self.loading = self.browser.find_element(By.ID, "loading")
         logger.info("Browser initialized and navigated to the URL")
     
