@@ -39,7 +39,7 @@ class Browser():
         options = FirefoxOptions()
         # options.headless = True # needs testing
         service = Service(executable_path=self.geckodriver_path)
-        self.browser = webdriver.Firefox(service=service, options=options)
+        self.browser = webdriver.Firefox(service=service)
         self.browser.get("http://admin:admin@192.168.178.145/menupagex.cgi?nodex2=02005800#02045800")
         self.loading = self.browser.find_element(By.ID, "loading")
         logger.info("Browser initialized and navigated to the URL")
@@ -105,6 +105,7 @@ class Browser():
         # Press OK
         area = self.browser.find_element(By.CLASS_NAME, "ui-dialog")
         button_area = area.find_element(By.CLASS_NAME, "ui-dialog-buttonset")
+        WebDriverWait(self.browser, 20).until(EC.element_to_be_clickable((By.CLASS_NAME, "ui-button")))
         buttons = button_area.find_elements(By.CLASS_NAME, "ui-button")
         for button in buttons:
             if button.text == "OK":

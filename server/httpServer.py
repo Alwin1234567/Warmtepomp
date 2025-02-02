@@ -43,11 +43,19 @@ class Server(BaseHTTPRequestHandler):
                 self.browser.get_set_warmtepompen(WS.AUTO)
             except Exception as e:
                 logger.error(f"Error while trying to set warmtepompen to auto: {e}")
+                try:
+                    self.browser.quit_browser()
+                except Exception as e:
+                    logger.error(f"Error while trying to quit browser: {e}")
         elif data == "wp off":
             try:
                 self.browser.get_set_warmtepompen(WS.OFF)
             except Exception as e:
                 logger.error(f"Error while trying to set warmtepompen to off: {e}")
+                try:
+                    self.browser.quit_browser()
+                except Exception as e:
+                    logger.error(f"Error while trying to quit browser: {e}")
         elif data == "test": 
             logger.info("Test")
         elif data == "restart":

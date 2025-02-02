@@ -1,5 +1,5 @@
 from http.server import HTTPServer
-from server import Server, WebSocketServer
+from server import Server, WebSocketServer, ServerRestartException
 from logger import logger
 from threading import Thread
 import asyncio
@@ -19,6 +19,10 @@ if __name__ == '__main__':
     try:
         logger.info("Server started")
         server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    except ServerRestartException:
+        pass
     finally:
         server.server_close()
         logger.info("Server stopped")

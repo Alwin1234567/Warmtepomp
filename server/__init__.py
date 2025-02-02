@@ -1,2 +1,2 @@
-from .httpServer import Server
+from .httpServer import Server, ServerRestartException
 from .websocketServer import WebSocketServer
