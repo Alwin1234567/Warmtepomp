@@ -38,7 +38,6 @@ class Browser():
         """
         options = FirefoxOptions()
         # options.headless = True # needs testing
-        self.browser = webdriver.Firefox(options=options)
         service = Service(executable_path=self.geckodriver_path)
         self.browser = webdriver.Firefox(service=service, options=options)
         self.browser.get("http://admin:admin@192.168.178.145/menupagex.cgi?nodex2=02005800#02045800")
