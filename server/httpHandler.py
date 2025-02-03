@@ -8,6 +8,7 @@ from config import WarmtepompSettings as WS
 import os
 from time import sleep
 import sys
+from logic import AlwinHome
 
 class HttpHandler(BaseHTTPRequestHandler):
     """class to handle the http requests"""
@@ -29,6 +30,7 @@ class HttpHandler(BaseHTTPRequestHandler):
         current_dir = os.path.dirname(__file__)
         self.htmlIndexFile = os.path.join(current_dir, 'index.html')
         super().__init__(request, client_address, server)
+        self.alwinHome = AlwinHome()
 
 
     def do_POST(self):
@@ -76,7 +78,20 @@ class HttpHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b"Pong")
             logger.info("Received ping")
-            
+        
+        elif data == 'Alwin home':
+            self.alwinHome.setHome()
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"Alwin is home")
+        
+        elif data == 'Alwin away':
+            self.alwinHome.setAway()
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"Alwin is away")
+
+
         else:
             self.send_response(403)
             self.send_header('Content-type', 'text/plain')
