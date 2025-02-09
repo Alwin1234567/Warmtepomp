@@ -44,7 +44,7 @@ class RuleAlwinHome(Rule):
     def warmtepompState(self, currentDateTime: datetime, alwinHome = False, **kwargs) -> RuleState:
         if not alwinHome:
             return RuleState.NEUTRAL
-        if currentDateTime.time() >= time(23, 0) or currentDateTime.time() <= time(3, 0):
+        if currentDateTime.time() >= Config.DEFAULT_ALWIN_TIME_OFF or currentDateTime.time() <= Config.DEFAULT_ALWIN_TIME_ON:
             return RuleState.OFF
         return RuleState.NEUTRAL
     
