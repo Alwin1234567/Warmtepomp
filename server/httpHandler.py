@@ -1,3 +1,4 @@
+from .serverInstance import HttpServerInstance
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from handler import Browser
 import socketserver
@@ -7,10 +8,7 @@ from config import WarmtepompSettings as WS
 import os
 from time import sleep
 
-class ServerRestartException(Exception):
-    pass
-
-class Server(BaseHTTPRequestHandler):
+class HttpHandler(BaseHTTPRequestHandler):
     """class to handle the http requests"""
 
     _instance = None
@@ -32,16 +30,6 @@ class Server(BaseHTTPRequestHandler):
         super().__init__(request, client_address, server)
 
 
-    def handle_one_request(self):
-        """Override to allow exceptions to propagate"""
-        try:
-            super().handle_one_request()
-        except ServerRestartException:
-            raise
-        except Exception as e:
-            logger.error(f"Error handling request: {e}")
-
-    
     def do_POST(self):
         """Handles the POST requests"""
         length = int(self.headers.get('content-length'))
@@ -72,10 +60,15 @@ class Server(BaseHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()            
             self.wfile.write(b"Restarting server")
+            self.wfile.flush()
             if self.browser and self.browser.browser:
                 sleep(2)
                 self.browser.quit_browser()
-            raise ServerRestartException("Restarting server")
+            if HttpServerInstance.serverInstance:
+                sleep(1)
+                HttpServerInstance.serverInstance.server_close()
+            
+            
         elif data == "ping":
             self.send_response(200)
             self.end_headers()
@@ -106,7 +99,7 @@ class Server(BaseHTTPRequestHandler):
 
         
 if __name__ == '__main__':
-    server = HTTPServer(('', 8888), Server)
+    server = HTTPServer(('', 8888), HttpHandler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
