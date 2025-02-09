@@ -22,7 +22,7 @@ def convertRuleStateToWarmtepompSettings(rule_state: RuleState) -> WS:
 class Rule(ABC):
     """Abstract class for a rule"""
     @abstractmethod
-    def warmtepompState(self, *args, **kwargs) -> RuleState:
+    def warmtepompState(self, **kwargs) -> RuleState:
         """Returns the state of the warmtepomp NEUTRAL means the rule is to be ignored"""
         pass
     
@@ -31,3 +31,8 @@ class Rule(ABC):
     def priority(self) -> int:
         """Returns the priority of the rule, higher priority rules will go first"""
         pass
+
+    @property
+    def name(self) -> str:
+        """Returns the name of the rule"""
+        return self.__class__.__name__

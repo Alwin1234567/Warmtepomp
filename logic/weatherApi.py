@@ -6,12 +6,11 @@ from logger import logger
 from datetime import datetime, timedelta
 
 
-load_dotenv(os.join(os.path.dirname(__file__), os.pardir, '.env'))
+load_dotenv(os.path.join(os.path.dirname(__file__), os.pardir, '.env'))
 
 class CurrentWeather:
 
     def __init__(self):
-        self.coordinates = Config.COORDINATES
         self.weatherApiToken = os.getenv('WEATHERAPI')
         self.updateInterval = timedelta(minutes=Config.OUTSIDE_TEMPERATURE_UPDATE_INTERVAL)
 
@@ -22,6 +21,16 @@ class CurrentWeather:
             self._hasToken = True
         self._temperature = 20.0
         self._lastUpdate = datetime(1970, 1, 1)
+
+        coordinatesLat = os.getenv("COORDINATES_LAT")
+        coordinatesLon = os.getenv("COORDINATES_LON")
+
+        if not coordinatesLat or not coordinatesLon:
+            logger.error("No coordinates found")
+            raise FileNotFoundError("No coordinates found")
+        
+        self.coordinatesLat = float(coordinatesLat)
+        self.coordinatesLon = float(coordinatesLon)
         
         
     
@@ -31,7 +40,7 @@ class CurrentWeather:
         url = 'http://api.weatherapi.com/v1/current.json'
         params = {
             'key' : self.weatherApiToken,
-            'q' : f'{self.coordinates[0]},{self.coordinates[1]}',
+            'q' : f'{self.coordinatesLat}, {self.coordinatesLon}',
             'aqi': 'no'
         }
         response = requests.get(url, params=params)

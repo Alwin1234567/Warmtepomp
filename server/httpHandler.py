@@ -5,10 +5,12 @@ import socketserver
 from typing import Tuple
 from logger import logger
 from config import WarmtepompSettings as WS
+from config import Config
 import os
 from time import sleep
 import sys
 from logic import AlwinHome
+import json
 
 class HttpHandler(BaseHTTPRequestHandler):
     """class to handle the http requests"""
@@ -38,7 +40,17 @@ class HttpHandler(BaseHTTPRequestHandler):
         length = int(self.headers.get('content-length'))
         data = self.rfile.read(length).decode('utf8')
         
-        if data == "wp auto":
+        try:
+            json_data: dict = json.loads(data)
+            command = json_data["command"]
+        except json.JSONDecodeError as e:
+            logger.error(f"Error decoding JSON: {e}")
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b"Invalid JSON")
+            return
+
+        if command == "wp auto":
             try:
                 self.browser.get_set_warmtepompen(WS.AUTO)
             except Exception as e:
@@ -47,7 +59,7 @@ class HttpHandler(BaseHTTPRequestHandler):
                     self.browser.quit_browser()
                 except Exception as e:
                     logger.error(f"Error while trying to quit browser: {e}")
-        elif data == "wp off":
+        elif command == "wp off":
             try:
                 self.browser.get_set_warmtepompen(WS.OFF)
             except Exception as e:
@@ -56,9 +68,11 @@ class HttpHandler(BaseHTTPRequestHandler):
                     self.browser.quit_browser()
                 except Exception as e:
                     logger.error(f"Error while trying to quit browser: {e}")
-        elif data == "test": 
+        
+        elif command == "test": 
             logger.info("Test")
-        elif data == "restart":
+        
+        elif command == "restart":
             logger.info("Received restart command")
             self.send_response(200)
             self.end_headers()            
@@ -71,25 +85,34 @@ class HttpHandler(BaseHTTPRequestHandler):
                 sleep(1)
                 HttpServerInstance.serverInstance.server_close()
                 sys.exit(0)
-            
-            
-        elif data == "ping":
+
+        elif command == "ping":
             self.send_response(200)
             self.end_headers()
             self.wfile.write(b"Pong")
             logger.info("Received ping")
         
-        elif data == 'Alwin home':
-            self.alwinHome.setHome()
+        elif command == 'Alwin home':
+            missingWeekday = False
+            if "weekday" not in json_data:
+                missingWeekday = True
+            weekday = json_data.get("weekday", "sunday")
+            if weekday.lower().strip() not in Config.WEEKDAYS:
+                weekday = "sunday"
+                missingWeekday = True
+            self.alwinHome.setHome(dayStr=weekday)
             self.send_response(200)
             self.end_headers()
-            self.wfile.write(b"Alwin is home")
+            if missingWeekday:
+                self.wfile.write(b"missing or invalid weekday, setting Alwin home until sunday")
+            else:
+                self.wfile.write(f"Setting Alwin home until {weekday}".encode('utf-8'))
         
-        elif data == 'Alwin away':
+        elif command == 'Alwin away':
             self.alwinHome.setAway()
             self.send_response(200)
             self.end_headers()
-            self.wfile.write(b"Alwin is away")
+            self.wfile.write(b"Setting Alwin away")
 
 
         else:

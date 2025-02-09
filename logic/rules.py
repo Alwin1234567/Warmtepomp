@@ -1,12 +1,11 @@
 from .rule import Rule, RuleState
-from datetime import time
+from datetime import datetime, time
+from config import Config
 
 """Rules for the warmtepomp
 
-Args:
-    currentTime (time): The current time
-
 Kwargs:
+    currentDateTime (datetime): The current time
     alwinHome (bool): Whether Alwin is home
     temperatureOutside (float): The temperature outside
     dawn (time): The time the sun rises
@@ -14,7 +13,7 @@ Kwargs:
 """
 
 class RuleDefualt(Rule):
-    def warmtepompState(self, *args, **kwargs) -> RuleState:
+    def warmtepompState(self, **kwargs) -> RuleState:
         return RuleState.AUTO
     
     @property
@@ -22,8 +21,8 @@ class RuleDefualt(Rule):
         return 0
 
 class RuleOptimiseEnergy(Rule):
-    def warmtepompState(self, currentTime: time, *args, dawn: time = time(7,0), dusk: time = time(19,0), **kwargs) -> RuleState:
-        if currentTime < dawn or currentTime > dusk:
+    def warmtepompState(self, currentDateTime: datetime, dawn = Config.DEFAULT_DAWN, dusk = Config.DEFAULT_DUSK, **kwargs) -> RuleState:
+        if currentDateTime.time() < dawn or currentDateTime.time() > dusk:
             return RuleState.OFF
         return RuleState.NEUTRAL
 
@@ -32,8 +31,8 @@ class RuleOptimiseEnergy(Rule):
         return 10
     
 class RuleColdOutside(Rule):
-    def warmtepompState(self, *args, temperatureOutside: float = 20, **kwargs) -> RuleState:
-        if temperatureOutside < 5:
+    def warmtepompState(self, temperatureOutside: float = Config.DEFAULT_OUTSIDE_TEMPERATURE, **kwargs) -> RuleState:
+        if temperatureOutside < Config.COLD_OUTSIDE_TEMPERATURE_THRESHOLD:
             return RuleState.AUTO
         return RuleState.NEUTRAL
     
@@ -42,10 +41,10 @@ class RuleColdOutside(Rule):
         return 50
 
 class RuleAlwinHome(Rule):
-    def warmtepompState(self, currentTime: time, *args, alwinHome = False, **kwargs) -> RuleState:
+    def warmtepompState(self, currentDateTime: datetime, alwinHome = False, **kwargs) -> RuleState:
         if not alwinHome:
             return RuleState.NEUTRAL
-        if currentTime >= time(23, 0) or currentTime <= time(3, 0):
+        if currentDateTime.time() >= time(23, 0) or currentDateTime.time() <= time(3, 0):
             return RuleState.OFF
         return RuleState.NEUTRAL
     
