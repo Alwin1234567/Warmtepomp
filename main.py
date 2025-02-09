@@ -1,8 +1,7 @@
 from http.server import HTTPServer
 from server import Server, WebSocketServer, ServerRestartException
 from logger import logger
-from threading import Thread
-import asyncio
+import sys
 
 # async def start_websocket_server(websocket_server):
 #     await websocket_server.start()
@@ -22,7 +21,9 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         pass
     except ServerRestartException:
-        pass
+        logger.info("Restarting server...")
+        server.server_close()
+        sys.exit(0)
     finally:
         server.server_close()
         logger.info("Server stopped")

@@ -4,7 +4,6 @@ import socketserver
 from typing import Tuple
 from logger import logger
 from config import WarmtepompSettings as WS
-import traceback
 import os
 from time import sleep
 
@@ -42,7 +41,7 @@ class Server(BaseHTTPRequestHandler):
             try:
                 self.browser.get_set_warmtepompen(WS.AUTO)
             except Exception as e:
-                logger.error(f"Error while trying to set warmtepompen to auto: {e}\n{traceback.format_exc()}")
+                logger.error(f"Error while trying to set warmtepompen to auto: {e}")
                 try:
                     self.browser.quit_browser()
                 except Exception as e:
@@ -63,10 +62,8 @@ class Server(BaseHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()            
             self.wfile.write(b"Restarting server")
-            logger.info("Restarting server...")
-            # subprocess.run(["/bin/bash", os.path.join(self.current_dir, 'setupAndRun.sh')])
             if self.browser and self.browser.browser:
-                sleep(1)
+                sleep(2)
                 self.browser.quit_browser()
             raise ServerRestartException("Restarting server")
         elif data == "ping":
