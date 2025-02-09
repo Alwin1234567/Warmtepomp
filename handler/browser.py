@@ -12,6 +12,15 @@ import os
 
 class Browser():
     """Class that uses Selenium to interact with the web interface of the heat pump"""
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        """Singleton pattern"""
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     
     def __init__(self):
         self.browser = None
