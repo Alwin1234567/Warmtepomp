@@ -31,6 +31,16 @@ class Server(BaseHTTPRequestHandler):
         self.htmlIndexFile = os.path.join(current_dir, 'index.html')
         super().__init__(request, client_address, server)
 
+
+    def handle_one_request(self):
+        """Override to allow exceptions to propagate"""
+        try:
+            super().handle_one_request()
+        except ServerRestartException:
+            raise
+        except Exception as e:
+            logger.error(f"Error handling request: {e}")
+
     
     def do_POST(self):
         """Handles the POST requests"""
