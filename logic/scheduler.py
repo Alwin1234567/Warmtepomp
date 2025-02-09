@@ -32,7 +32,7 @@ class Scheduler:
         while not self.stop:
             warmtepompState = RuleState.NEUTRAL
             for rule in self.rules:
-                args, kwargs = await rule.obtainInformation()
+                args, kwargs = await rule.obtainInformation() # this needs fixing
                 ruleWarmtepompState = rule.warmtepompState(*args, **kwargs)
                 if ruleWarmtepompState != RuleState.NEUTRAL and warmtepompState == RuleState.NEUTRAL:
                     warmtepompState = ruleWarmtepompState
@@ -42,6 +42,8 @@ class Scheduler:
             for _ in range(Config.SCHEDULER_INTERVAL):
                 await asleep(1)
                 if self.stop:
+                    break
+                if self._continue # signal by sever when it got a message to do someting
                     break
     
 
