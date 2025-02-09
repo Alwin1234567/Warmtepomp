@@ -7,6 +7,7 @@ from logger import logger
 from config import WarmtepompSettings as WS
 import os
 from time import sleep
+import sys
 
 class HttpHandler(BaseHTTPRequestHandler):
     """class to handle the http requests"""
@@ -67,6 +68,7 @@ class HttpHandler(BaseHTTPRequestHandler):
             if HttpServerInstance.serverInstance:
                 sleep(1)
                 HttpServerInstance.serverInstance.server_close()
+                sys.exit(0)
             
             
         elif data == "ping":

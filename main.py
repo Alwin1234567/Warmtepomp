@@ -22,8 +22,8 @@ if __name__ == '__main__':
         server.serve_forever()
     except KeyboardInterrupt:
         pass
-    # except OSError:
-    #     sys.exit(0)
+    except OSError:
+        pass
     finally:
         server.server_close()
         logger.info("Server stopped")
