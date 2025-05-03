@@ -20,7 +20,7 @@ class AlwinHome:
     
     def setHome(self, dayStr: str = "sunday"):
         self._isHome = True
-        logger.info("Set Alwin to is home")
+        logger.info(f"Set Alwin to is home until next {dayStr}")
         if self._setAwayTask:
             self._setAwayTask.cancel()
         try:

@@ -21,7 +21,7 @@ class Browser():
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    
+
     def __init__(self):
         self.browser = None
         self.loading = None
@@ -30,7 +30,7 @@ class Browser():
         # Check for geckodriver.exe and geckodriver
         geckodriver_path_exe = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
         geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver')
-        
+
         if os.path.exists(geckodriver_path_exe):
             self.geckodriver_path = geckodriver_path_exe
             logger.debug(f"Geckodriver found at {geckodriver_path_exe}")
@@ -52,7 +52,7 @@ class Browser():
         self.browser.get("http://admin:admin@192.168.178.145/menupagex.cgi?nodex2=02005800#02045800")
         self.loading = self.browser.find_element(By.ID, "loading")
         logger.info("Browser initialized and navigated to the URL")
-    
+
     def quit_browser(self):
         """Quits the browser"""
         if self.browser:
@@ -64,11 +64,11 @@ class Browser():
     def get_warmtepomp(self, number: int, click=True):
         """
         Gets the warmtepomp with the given number and optionally clicks on it
-        
+
         Args:
             number (int): The number of the warmtepomp
             click (bool): Whether to click on the warmtepomp
-            
+
         Returns:
             WebElement: The warmtepomp button
         """
@@ -123,7 +123,7 @@ class Browser():
         ok.click()
         logger.info(f"Warmtepomp set to {state.name}")
         return True
-    
+
     def get_set_warmptepomp(self, number: int, state: WarmtepompSettings):
         """
         Gets and sets the warmtepomp with the given number to the given state
@@ -136,7 +136,7 @@ class Browser():
         wp = self.get_warmtepomp(number)
         if wp:
             self.set_warmtepomp(state)
-        
+
     def get_set_warmtepompen(self, state: WarmtepompSettings):
         """
         Gets and sets all warmtepompen to the given state
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     browser = Browser()
     try:
         browser.browser_init()
-        browser.get_set_warmtepompen(WarmtepompSettings.auto)
+        browser.get_set_warmtepompen(WarmtepompSettings.AUTO)
     except Exception as e:
         logger.error(f"An error occurred: {e}")
     finally:

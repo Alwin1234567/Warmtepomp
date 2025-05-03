@@ -26,11 +26,13 @@ class Scheduler:
         self.alwinHome = AlwinHome()
         coordinatesLat = os.getenv("COORDINATES_LAT")
         coordinatesLon = os.getenv("COORDINATES_LON")
+        self._continue = False
+        self._curentWarmtepompState = RuleState.NEUTRAL
 
         if not coordinatesLat or not coordinatesLon:
             logger.error("No coordinates found")
             raise FileNotFoundError("No coordinates found")
-        
+
         self.coordinatesLat = float(coordinatesLat)
         self.coordinatesLon = float(coordinatesLon)
 
@@ -42,7 +44,7 @@ class Scheduler:
             rules.append(subclass())
         rules.sort(key=lambda rule: rule.priority, reverse=True)
         return rules
-    
+
     async def getCheckedRules(self) -> list[Rule]:
         """Gets the rules that are checked"""
         rules = self.getRules()
@@ -62,9 +64,10 @@ class Scheduler:
         if len(checkedRules) == 0:
             logger.warning("No rules pass the checks")
         return checkedRules
-    
+
     async def run(self):
         while not self.stop:
+            logger.info("Scheduler is running")
             warmtepompState = RuleState.NEUTRAL
             for rule in self.rules:
                 kwargs = await self.obtainInformation()
@@ -81,7 +84,7 @@ class Scheduler:
                 if self._continue: # signal by sever when it got a message to do someting
                     self._continue = False
                     break
-    
+
 
     async def obtainInformation(self) -> dict[str, any]:
         """Obtains the information needed to apply the rules"""
@@ -104,7 +107,7 @@ class Scheduler:
         except Exception as e:
             logger.error(f"Error while getting dusk time: {e}")
             return time(19, 0)
-    
+
     async def getDawn(self) -> time:
         """Gets the dawn time"""
         try:
@@ -114,31 +117,37 @@ class Scheduler:
         except Exception as e:
             logger.error(f"Error while getting dawn time: {e}")
             return time(7, 0)
-    
+
     async def applyRules(self, warmtepompState: RuleState):
         """Applies the rules to the warmtepomp
-        
+
         Args:
             warmtepompState (RuleState): The current state of the warmtepomp
         """
         if warmtepompState != RuleState.NEUTRAL and warmtepompState != self.curentWarmtepompState:
             for _ in range(30):
-                if self.browser.browser != None:
+                if self.browser.browser is None:
                     self.browser.get_set_warmtepompen(convertRuleStateToWarmtepompSettings(warmtepompState))
-                    break
+                    self.curentWarmtepompState = warmtepompState
+                    return
                 await asleep(1)
                 if self.stop:
                     logger.warning("aborting applying rules due to stop")
             logger.warning("aborting browser after waiting for 30 seconds to apply new rules")
             self.browser.quit_browser()
             self.browser.get_set_warmtepompen(convertRuleStateToWarmtepompSettings(warmtepompState))
-            
+            self.curentWarmtepompState = warmtepompState
+
     def signalContinue(self):
         self._continue = True
 
+    # TODO should make this so it reads from the actual state of the warmtepomp, rather than what it sets here
     @property
     def curentWarmtepompState(self) -> RuleState:
-        pass
-        
-                
-                
+        """Gets the current state of the warmtepomp"""
+        return self._curentWarmtepompState
+
+    @curentWarmtepompState.setter
+    def curentWarmtepompState(self, state: RuleState):
+        self._curentWarmtepompState = state
+        logger.info(f"Current warmtepomp state set to {state.name}")

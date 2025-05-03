@@ -17,7 +17,7 @@ async def run(scheduler):
 
     try:
         logger.info("Server started")
-        server.serve_forever()
+        await asyncio.to_thread(server.serve_forever)
     except KeyboardInterrupt:
         pass
     except OSError:
@@ -28,7 +28,7 @@ async def run(scheduler):
             scheduler_task.cancel()
         server.server_close()
         logger.info("Server stopped")
-    
+
 
 if __name__ == '__main__':
     # Start the HTTP server
@@ -45,5 +45,5 @@ if __name__ == '__main__':
         scheduler = Scheduler()
     except Exception as e:
         logger.error(f"Error while initializing scheduler: {e}")
-    
+
     asyncio.run(run(scheduler))
