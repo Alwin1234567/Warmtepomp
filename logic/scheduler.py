@@ -67,15 +67,18 @@ class Scheduler:
 
     async def run(self):
         while not self.stop:
-            logger.info("Scheduler is running")
             warmtepompState = RuleState.NEUTRAL
+            active_rule = None
             for rule in self.rules:
+                active_rule = rule
                 kwargs = await self.obtainInformation()
                 ruleWarmtepompState = rule.warmtepompState(**kwargs)
                 if ruleWarmtepompState != RuleState.NEUTRAL and warmtepompState == RuleState.NEUTRAL:
                     warmtepompState = ruleWarmtepompState
                 if warmtepompState != RuleState.NEUTRAL: # and other states when added
                     break
+            if active_rule is not None and warmtepompState != self.curentWarmtepompState:
+                logger.info(f"Rule {active_rule.name} changes the state to {warmtepompState.name}")
             await self.applyRules(warmtepompState)
             for _ in range(Config.SCHEDULER_INTERVAL):
                 await asleep(1)
