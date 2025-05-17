@@ -1,18 +1,19 @@
+import os
+import asyncio
+from asyncio import sleep as asleep
+from datetime import datetime
+from datetime import time
+from zoneinfo import ZoneInfo
+from astral import LocationInfo
+from astral.sun import sun
+from dotenv import load_dotenv
+from handler import Browser
+from logger import logger
+from config import Config
 from .rule import Rule, RuleState, convertRuleStateToWarmtepompSettings
 from .rules import *
 from .alwinHome import AlwinHome
 from .weatherApi import CurrentWeather
-from asyncio import sleep as asleep
-from handler import Browser
-from logger import logger
-from datetime import datetime
-from config import Config
-from astral import LocationInfo
-from astral.sun import sun
-from datetime import time
-from dotenv import load_dotenv
-import os
-import asyncio
 
 load_dotenv(os.path.join(os.path.dirname(__file__), os.pardir, 'tokens.env'))
 
@@ -28,6 +29,7 @@ class Scheduler:
         coordinatesLon = os.getenv("COORDINATES_LON")
         self._continue = False
         self._curentWarmtepompState = RuleState.NEUTRAL
+        self._amsterdam_zone = ZoneInfo("Europe/Amsterdam")
 
         if not coordinatesLat or not coordinatesLon:
             logger.error("No coordinates found")
@@ -106,9 +108,9 @@ class Scheduler:
         try:
             location = LocationInfo(self.coordinatesLat, self.coordinatesLon)
             sunTimes = sun(location.observer, date=datetime.now().date())
-            return sunTimes['dusk'].time()
+            return sunTimes['sunset'].astimezone(self._amsterdam_zone).time()
         except Exception as e:
-            logger.error(f"Error while getting dusk time: {e}")
+            logger.error(f"Error while getting sunset time: {e}")
             return time(19, 0)
 
     async def getDawn(self) -> time:
@@ -116,9 +118,9 @@ class Scheduler:
         try:
             location = LocationInfo(self.coordinatesLat, self.coordinatesLon)
             sunTimes = sun(location.observer, date=datetime.now().date())
-            return sunTimes['dawn'].time()
+            return sunTimes['sunrise'].astimezone(self._amsterdam_zone).time()
         except Exception as e:
-            logger.error(f"Error while getting dawn time: {e}")
+            logger.error(f"Error while getting sunrise time: {e}")
             return time(7, 0)
 
     async def applyRules(self, warmtepompState: RuleState):
