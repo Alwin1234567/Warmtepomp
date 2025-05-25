@@ -28,12 +28,14 @@ class CurrentWeather:
         if not coordinatesLat or not coordinatesLon:
             logger.error("No coordinates found")
             raise FileNotFoundError("No coordinates found")
-        
+
         self.coordinatesLat = float(coordinatesLat)
         self.coordinatesLon = float(coordinatesLon)
-        
-        
-    
+
+        self._temperature_history = [Config.DEFAULT_OUTSIDE_TEMPERATURE] * Config.OUTSIDE_TEMPERATURE_HISTORY_SIZE
+
+
+
     async def requestTemperature(self) -> float:
         if not self.hasToken:
             return 20.0
@@ -51,25 +53,40 @@ class CurrentWeather:
             logger.error(f"Error while getting temperature from weather api: {data}")
             temperature = 20.0
         return temperature
-    
+
     async def setTemperature(self):
         try:
             self._temperature = await self.requestTemperature()
+            await self.updateHistory(self._temperature)
             logger.debug(f"Temperature set to {self._temperature}")
         except Exception as e:
             logger.error(f"Error while setting temperature: {e}")
             self._temperature = 20.0
         self._lastUpdate = datetime.now()
-    
+
+    async def updateHistory(self, temperature: float):
+        try:
+            self._temperature_history.append(temperature)
+            self._temperature_history.pop(0)
+        except Exception as e:
+            logger.error(f"Error while updating temperature history: {e}")
 
     @property
     def hasToken(self) -> bool:
         return self._hasToken
-    
+
     @property
     async def currentTemperature(self) -> float:
         if not self.hasToken:
-            return 20.0
+            return Config.DEFAULT_OUTSIDE_TEMPERATURE
         if datetime.now() - self._lastUpdate > self.updateInterval:
             await self.setTemperature()
         return self._temperature
+
+    @property
+    async def temperatureHistory(self) -> list[float]:
+        if not self.hasToken:
+            return [Config.DEFAULT_OUTSIDE_TEMPERATURE] * Config.OUTSIDE_TEMPERATURE_HISTORY_SIZE
+        if datetime.now() - self._lastUpdate > self.updateInterval:
+            await self.setTemperature()
+        return self._temperature_history

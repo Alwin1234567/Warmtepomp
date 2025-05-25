@@ -15,7 +15,7 @@ Kwargs:
 class RuleDefualt(Rule):
     def warmtepompState(self, **kwargs) -> RuleState:
         return RuleState.AUTO
-    
+
     @property
     def priority(self):
         return 0
@@ -29,13 +29,16 @@ class RuleOptimiseEnergy(Rule):
     @property
     def priority(self):
         return 10
-    
+
 class RuleColdOutside(Rule):
-    def warmtepompState(self, temperatureOutside: float = Config.DEFAULT_OUTSIDE_TEMPERATURE, **kwargs) -> RuleState:
-        if temperatureOutside < Config.COLD_OUTSIDE_TEMPERATURE_THRESHOLD:
-            return RuleState.AUTO
-        return RuleState.NEUTRAL
-    
+    def warmtepompState(self, temperatureOutsideHistory: list[float] = [Config.DEFAULT_OUTSIDE_TEMPERATURE] * Config.OUTSIDE_TEMPERATURE_HISTORY_SIZE, **kwargs) -> RuleState:
+        smaller_history_size = min(len(temperatureOutsideHistory), Config.COLD_OUTSIDE_HISTORY_SIZE)
+        smaller_history = temperatureOutsideHistory[-smaller_history_size:]
+        for temperature in smaller_history:
+            if temperature >= Config.COLD_OUTSIDE_TEMPERATURE_THRESHOLD:
+                return RuleState.NEUTRAL
+        return RuleState.AUTO
+
     @property
     def priority(self):
         return 50
@@ -47,8 +50,7 @@ class RuleAlwinHome(Rule):
         if currentDateTime.time() >= Config.DEFAULT_ALWIN_TIME_OFF or currentDateTime.time() <= Config.DEFAULT_ALWIN_TIME_ON:
             return RuleState.OFF
         return RuleState.NEUTRAL
-    
+
     @property
     def priority(self):
         return 70
-

@@ -97,6 +97,7 @@ class Scheduler:
             "currentDateTime": datetime.now(),
             "alwinHome": self.alwinHome.isHome,
             "temperatureOutside": await self.weatherApi.currentTemperature,
+            "temperatureOutsideHistory": await self.weatherApi.temperatureHistory,
             "dawn": await self.getDawn(),
             "dusk": await self.getDusk()
         }
