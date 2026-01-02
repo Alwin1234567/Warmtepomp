@@ -1,6 +1,7 @@
 from .rule import Rule, RuleState
-from datetime import datetime, time
-from config import Config
+from datetime import datetime
+from config import Config, FallAsleepEnum
+from logger import logger
 
 """Rules for the warmtepomp
 
@@ -54,3 +55,19 @@ class RuleAlwinHome(Rule):
     @property
     def priority(self):
         return 70
+
+class RuleAlwinSleep(Rule):
+    def warmtepompState(self, fallingAsleep = FallAsleepEnum.NEUTRAL, **kwargs) -> RuleState:
+        if fallingAsleep == FallAsleepEnum.NEUTRAL:
+            return RuleState.NEUTRAL
+        elif fallingAsleep == FallAsleepEnum.FALLING_ASLEEP:
+            return RuleState.OFF
+        elif fallingAsleep == FallAsleepEnum.ASLEEP:
+            return RuleState.AUTO
+        else:
+            logger.warning(f"Unknown fallingAsleep state: {fallingAsleep}")
+            return RuleState.NEUTRAL
+
+    @property
+    def priority(self):
+        return 80

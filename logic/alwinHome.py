@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime, timedelta
 from logger import logger
+from config import Config, FallAsleepEnum
 
 
 class AlwinHome:
@@ -13,11 +14,12 @@ class AlwinHome:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
-    
+
     def __init__(self):
         self._isHome = False
         self._setAwayTask = None
-    
+        self._fallingAsleep = FallAsleepEnum.NEUTRAL
+
     def setHome(self, dayStr: str = "sunday"):
         self._isHome = True
         logger.info(f"Set Alwin to is home until next {dayStr}")
@@ -38,13 +40,20 @@ class AlwinHome:
             return
         logger.info("Set Alwin to is away")
         self._isHome = False
-    
+
+    def startWinterSleep(self):
+        if self._fallingAsleep != FallAsleepEnum.NEUTRAL:
+            logger.info("Alwin is already falling asleep or asleep")
+            return
+        logger.info("Set Alwin to falling asleep")
+        asyncio.create_task(self._schedule_winter_sleep())
+
     def dayToIndex(self, day: str) -> int:
         """Converts the day to an index
-        
+
         Args:
             day (str): The day to convert
-        
+
         Returns:
             int: The index of the day
         """
@@ -64,7 +73,7 @@ class AlwinHome:
 
     async def _schedule_setAway_next_sunday(self, day: int):
         """Schedules setAway to run at the next specified day at 12 PM
-        
+
         Args:
             day (int): The day to schedule the setAway task
         """
@@ -79,6 +88,21 @@ class AlwinHome:
         await asyncio.sleep(delay)
         self.setAway()
 
+    async def _schedule_winter_sleep(self):
+        """Schedules Warmtepomp to go back on after falling asleep in winter"""
+        self._fallingAsleep = FallAsleepEnum.FALLING_ASLEEP
+        sleep_delay = Config.DEFAULT_ALWIN_TIME_TO_SLEEP * 60 # minutes to seconds
+        scheduler_delay = Config.SCHEDULER_INTERVAL * 4 # seconds
+        await asyncio.sleep(sleep_delay)
+        self._fallingAsleep = FallAsleepEnum.ASLEEP
+
+        await asyncio.sleep(scheduler_delay)
+        self._fallingAsleep = FallAsleepEnum.NEUTRAL
+
     @property
     def isHome(self):
         return self._isHome
+
+    @property
+    def fallingAsleep(self):
+        return self._fallingAsleep

@@ -86,7 +86,7 @@ class Scheduler:
                 await asleep(1)
                 if self.stop:
                     break
-                if self._continue: # signal by sever when it got a message to do someting
+                if self._continue: # signal by server when it got a message to do someting
                     self._continue = False
                     break
 
@@ -96,6 +96,7 @@ class Scheduler:
         kwargs = {
             "currentDateTime": datetime.now(),
             "alwinHome": self.alwinHome.isHome,
+            "fallingAsleep": self.alwinHome.fallingAsleep,
             "temperatureOutside": await self.weatherApi.currentTemperature,
             "temperatureOutsideHistory": await self.weatherApi.temperatureHistory,
             "dawn": await self.getDawn(),

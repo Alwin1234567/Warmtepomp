@@ -22,7 +22,7 @@ class HttpHandler(BaseHTTPRequestHandler):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
-    
+
     def __init__(self, request: bytes, client_address: Tuple[str, int], server: socketserver.BaseServer):
         """Initializes the server"""
         try:
@@ -39,7 +39,7 @@ class HttpHandler(BaseHTTPRequestHandler):
         """Handles the POST requests"""
         length = int(self.headers.get('content-length'))
         data = self.rfile.read(length).decode('utf8')
-        
+
         try:
             json_data: dict = json.loads(data)
             command = json_data["command"]
@@ -53,29 +53,41 @@ class HttpHandler(BaseHTTPRequestHandler):
         if command == "wp auto":
             try:
                 self.browser.get_set_warmtepompen(WS.AUTO)
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"Warmtepomp set to AUTO")
             except Exception as e:
                 logger.error(f"Error while trying to set warmtepompen to auto: {e}")
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(b"Error setting warmtepomp")
                 try:
                     self.browser.quit_browser()
-                except Exception as e:
-                    logger.error(f"Error while trying to quit browser: {e}")
+                except Exception as e2:
+                    logger.error(f"Error while trying to quit browser: {e2}")
         elif command == "wp off":
             try:
                 self.browser.get_set_warmtepompen(WS.OFF)
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"Warmtepomp set to OFF")
             except Exception as e:
                 logger.error(f"Error while trying to set warmtepompen to off: {e}")
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(b"Error setting warmtepomp")
                 try:
                     self.browser.quit_browser()
-                except Exception as e:
-                    logger.error(f"Error while trying to quit browser: {e}")
-        
-        elif command == "test": 
+                except Exception as e2:
+                    logger.error(f"Error while trying to quit browser: {e2}")
+
+        elif command == "test":
             logger.info("Test")
-        
+
         elif command == "restart":
             logger.info("Received restart command")
             self.send_response(200)
-            self.end_headers()            
+            self.end_headers()
             self.wfile.write(b"Restarting server")
             self.wfile.flush()
             if self.browser and self.browser.browser:
@@ -91,7 +103,7 @@ class HttpHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b"Pong")
             logger.info("Received ping")
-        
+
         elif command == 'Alwin home':
             missingWeekday = False
             if "weekday" not in json_data:
@@ -107,13 +119,18 @@ class HttpHandler(BaseHTTPRequestHandler):
                 self.wfile.write(b"missing or invalid weekday, setting Alwin home until sunday")
             else:
                 self.wfile.write(f"Setting Alwin home until {weekday}".encode('utf-8'))
-        
+
         elif command == 'Alwin away':
             self.alwinHome.setAway()
             self.send_response(200)
             self.end_headers()
             self.wfile.write(b"Setting Alwin away")
 
+        elif command == 'Alwin wintersleep':
+            self.alwinHome.startWinterSleep()
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"Setting Alwin to winter sleep")
 
         else:
             self.send_response(403)
@@ -122,8 +139,6 @@ class HttpHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Invalid command")
             logger.warning(f"Received invalid command: {data}")
             return
-        self.send_response(200)
-        self.end_headers()
 
     def do_GET(self):
         """Handles the GET requests"""
@@ -137,7 +152,7 @@ class HttpHandler(BaseHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
 
-        
+
 if __name__ == '__main__':
     server = HTTPServer(('', 8888), HttpHandler)
     try:
