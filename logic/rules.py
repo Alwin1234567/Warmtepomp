@@ -1,5 +1,5 @@
 from .rule import Rule, RuleState
-from datetime import datetime
+from datetime import datetime, timedelta
 from config import Config, FallAsleepEnum
 from logger import logger
 
@@ -23,7 +23,15 @@ class RuleDefualt(Rule):
 
 class RuleOptimiseEnergy(Rule):
     def warmtepompState(self, currentDateTime: datetime, dawn = Config.DEFAULT_DAWN, dusk = Config.DEFAULT_DUSK, **kwargs) -> RuleState:
-        if currentDateTime.time() < dawn or currentDateTime.time() > dusk:
+        # Spring: March, April, May — Summer: June, July, August
+        is_spring_or_summer = currentDateTime.month in (3, 4, 5, 6, 7, 8)
+
+        if is_spring_or_summer:
+            start_threshold = (datetime.combine(currentDateTime.date(), dawn) + timedelta(hours=1)).time()
+        else:
+            start_threshold = dawn
+
+        if currentDateTime.time() < start_threshold or currentDateTime.time() > dusk:
             return RuleState.OFF
         return RuleState.NEUTRAL
 

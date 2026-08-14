@@ -133,7 +133,7 @@ class HttpHandler(BaseHTTPRequestHandler):
             self.wfile.write(b"Setting Alwin to winter sleep")
 
         else:
-            self.send_response(403)
+            self.send_response(404)
             self.send_header('Content-type', 'text/plain')
             self.end_headers()
             self.wfile.write(b"Invalid command")
